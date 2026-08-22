@@ -1,0 +1,14 @@
+.DS_Store
+.env
+.idea/
+.pytest_cache/
+.pyright/
+.ruff_cache/
+.venv/
+.worktrees/
+__pycache__/
+*.py[cod]
+htmlcov/
+.coverage
+dist/
+
