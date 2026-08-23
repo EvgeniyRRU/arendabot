@@ -160,3 +160,30 @@ async def test_lifespan_registers_webhook_and_closes_resources() -> None:
     resources.dispatcher.emit_shutdown.assert_awaited_once()
     resources.bot.session.close.assert_awaited_once()
     resources.engine.dispose.assert_awaited_once()
+
+
+async def test_lifespan_cleans_up_when_webhook_registration_fails() -> None:
+    resources = make_resources()
+    resources.bot.set_webhook.side_effect = RuntimeError("Telegram unavailable")
+    app = create_app(make_settings(), resources=resources)
+
+    with pytest.raises(RuntimeError, match="Telegram unavailable"):
+        async with app.router.lifespan_context(app):
+            pass
+
+    resources.dispatcher.emit_shutdown.assert_awaited_once()
+    resources.bot.session.close.assert_awaited_once()
+    resources.engine.dispose.assert_awaited_once()
+
+
+async def test_lifespan_closes_resources_when_shutdown_hook_fails() -> None:
+    resources = make_resources()
+    resources.dispatcher.emit_shutdown.side_effect = RuntimeError("shutdown failed")
+    app = create_app(make_settings(), resources=resources)
+
+    with pytest.raises(RuntimeError, match="shutdown failed"):
+        async with app.router.lifespan_context(app):
+            pass
+
+    resources.bot.session.close.assert_awaited_once()
+    resources.engine.dispose.assert_awaited_once()

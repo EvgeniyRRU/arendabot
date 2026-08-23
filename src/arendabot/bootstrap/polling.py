@@ -13,7 +13,8 @@ async def run_polling(resources: RuntimeResources, *, drop_pending_updates: bool
     try:
         await resources.bot.delete_webhook(drop_pending_updates=drop_pending_updates)
         await resources.dispatcher.start_polling(  # pyright: ignore[reportUnknownMemberType]
-            resources.bot
+            resources.bot,
+            close_bot_session=False,
         )
     finally:
         await resources.bot.session.close()

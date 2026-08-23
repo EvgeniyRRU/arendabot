@@ -46,23 +46,30 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
-        await resources.dispatcher.emit_startup(bot=resources.bot)
-        if resolved_settings.update_mode is UpdateMode.WEBHOOK:
-            webhook_url = resolved_settings.webhook_url
-            webhook_secret = resolved_settings.webhook_secret_value
-            if webhook_url is None or webhook_secret is None:
-                raise RuntimeError("webhook settings were not validated")
-            await resources.bot.set_webhook(
-                url=webhook_url,
-                secret_token=webhook_secret,
-                allowed_updates=resources.dispatcher.resolve_used_update_types(),
-            )
+        dispatcher_started = False
         try:
+            await resources.dispatcher.emit_startup(bot=resources.bot)
+            dispatcher_started = True
+            if resolved_settings.update_mode is UpdateMode.WEBHOOK:
+                webhook_url = resolved_settings.webhook_url
+                webhook_secret = resolved_settings.webhook_secret_value
+                if webhook_url is None or webhook_secret is None:
+                    raise RuntimeError("webhook settings were not validated")
+                await resources.bot.set_webhook(
+                    url=webhook_url,
+                    secret_token=webhook_secret,
+                    allowed_updates=resources.dispatcher.resolve_used_update_types(),
+                )
             yield
         finally:
-            await resources.dispatcher.emit_shutdown(bot=resources.bot)
-            await resources.bot.session.close()
-            await resources.engine.dispose()
+            try:
+                if dispatcher_started:
+                    await resources.dispatcher.emit_shutdown(bot=resources.bot)
+            finally:
+                try:
+                    await resources.bot.session.close()
+                finally:
+                    await resources.engine.dispose()
 
     app = FastAPI(title="arendabot", lifespan=lifespan)
 
