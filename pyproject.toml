@@ -37,6 +37,8 @@ include = ["src"]
 exclude = ["src/arendabot/adapters/postgres/migrations"]
 pythonVersion = "3.14"
 typeCheckingMode = "strict"
+venv = ".venv"
+venvPath = "."
 
 [tool.pytest.ini_options]
 addopts = ["-ra", "--strict-config", "--strict-markers"]
@@ -54,4 +56,3 @@ select = ["ASYNC", "B", "E", "F", "I", "RUF", "SIM", "UP"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101"]
-

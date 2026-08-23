@@ -56,3 +56,20 @@ def test_rejects_naive_timestamps() -> None:
             created_at=naive,
             updated_at=naive,
         )
+
+
+def test_rejects_an_update_before_creation() -> None:
+    created_at = datetime(2026, 8, 23, 10, tzinfo=UTC)
+
+    with pytest.raises(ValueError, match="before creation"):
+        TelegramUser(
+            id=UUID("11111111-1111-1111-1111-111111111111"),
+            telegram_id=42,
+            username=None,
+            first_name="Name",
+            last_name=None,
+            language_code=None,
+            is_bot=False,
+            created_at=created_at,
+            updated_at=created_at - timedelta(seconds=1),
+        )
