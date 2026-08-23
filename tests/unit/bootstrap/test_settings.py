@@ -41,3 +41,23 @@ def test_webhook_secret_rejects_unsupported_characters() -> None:
             webhook_secret="not valid!",
             _env_file=None,
         )
+
+
+def test_webhook_mode_requires_https() -> None:
+    with pytest.raises(ValidationError, match="HTTPS"):
+        Settings(
+            **BASE_SETTINGS,
+            update_mode=UpdateMode.WEBHOOK,
+            webhook_base_url="http://bot.example.com",
+            webhook_secret="valid_secret-123",
+            _env_file=None,
+        )
+
+
+def test_database_url_requires_the_asyncpg_driver() -> None:
+    with pytest.raises(ValidationError, match=r"postgresql\+asyncpg"):
+        Settings(
+            bot_token=BASE_SETTINGS["bot_token"],
+            database_url="postgresql://postgres:postgres@localhost/arendabot",
+            _env_file=None,
+        )

@@ -4,8 +4,10 @@ import re
 from enum import StrEnum
 from typing import Self
 
-from pydantic import AnyHttpUrl, SecretStr, model_validator
+from pydantic import AnyHttpUrl, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy import make_url
+from sqlalchemy.exc import ArgumentError
 
 WEBHOOK_PATH = "/telegram/webhook"
 _WEBHOOK_SECRET_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,256}$")
@@ -37,11 +39,24 @@ class Settings(BaseSettings):
     drop_pending_updates: bool = False
     log_level: str = "INFO"
 
+    @field_validator("database_url")
+    @classmethod
+    def validate_database_url(cls, value: str) -> str:
+        try:
+            driver_name = make_url(value).drivername
+        except ArgumentError as error:
+            raise ValueError("database_url must be a valid SQLAlchemy URL") from error
+        if driver_name != "postgresql+asyncpg":
+            raise ValueError("database_url must use the postgresql+asyncpg driver")
+        return value
+
     @model_validator(mode="after")
     def validate_webhook_settings(self) -> Self:
         if self.update_mode is UpdateMode.WEBHOOK:
             if self.webhook_base_url is None or self.webhook_secret is None:
                 raise ValueError("webhook_base_url and webhook_secret are required in webhook mode")
+            if self.webhook_base_url.scheme != "https":
+                raise ValueError("webhook_base_url must use HTTPS in webhook mode")
             if not _WEBHOOK_SECRET_PATTERN.fullmatch(self.webhook_secret.get_secret_value()):
                 raise ValueError("webhook_secret may contain only letters, digits, '_' and '-'")
         return self

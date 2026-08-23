@@ -6,15 +6,16 @@ from typing import Self
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from arendabot.adapters.postgres.repositories import SqlAlchemyTelegramUserRepository
+from arendabot.application.ports import TelegramUserRepository, UnitOfWork
 
 
-class SqlAlchemyUnitOfWork:
+class SqlAlchemyUnitOfWork(UnitOfWork):
     """Manage one async SQLAlchemy transaction and its repositories."""
 
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
         self._session: AsyncSession | None = None
-        self.users: SqlAlchemyTelegramUserRepository
+        self.users: TelegramUserRepository
 
     async def __aenter__(self) -> Self:
         self._session = self._session_factory()

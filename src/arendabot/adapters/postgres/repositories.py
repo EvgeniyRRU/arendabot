@@ -4,10 +4,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from arendabot.adapters.postgres.models import TelegramUserModel
+from arendabot.application.ports import TelegramUserRepository
 from arendabot.domain.telegram_user import TelegramUser
 
 
-class SqlAlchemyTelegramUserRepository:
+class SqlAlchemyTelegramUserRepository(TelegramUserRepository):
     """Persist Telegram users through an async SQLAlchemy session."""
 
     def __init__(self, session: AsyncSession) -> None:
