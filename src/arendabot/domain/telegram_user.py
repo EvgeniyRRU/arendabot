@@ -22,6 +22,8 @@ class TelegramUser:
     def __post_init__(self) -> None:
         if self.created_at.utcoffset() is None or self.updated_at.utcoffset() is None:
             raise ValueError("timestamps must be timezone-aware")
+        if self.updated_at < self.created_at:
+            raise ValueError("updated timestamp cannot be before creation")
 
     def refresh_profile(
         self,

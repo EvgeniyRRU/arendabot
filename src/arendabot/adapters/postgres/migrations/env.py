@@ -1,5 +1,6 @@
 from asyncio import run
 from logging.config import fileConfig
+from os import environ
 
 from alembic import context
 from sqlalchemy import pool
@@ -9,6 +10,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from arendabot.adapters.postgres.models import Base
 
 config = context.config
+if database_url := environ.get("ARENDABOT_DATABASE_URL"):
+    config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 

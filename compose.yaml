@@ -1,0 +1,44 @@
+name: arendabot
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: arendabot
+      POSTGRES_PASSWORD: arendabot
+      POSTGRES_USER: arendabot
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arendabot -d arendabot"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      target: development
+    command:
+      - /bin/sh
+      - -c
+      - alembic upgrade head && watchfiles --filter python 'arendabot-polling' src
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ARENDABOT_BOT_TOKEN: ${ARENDABOT_BOT_TOKEN:-123456:replace_with_your_bot_token_from_BotFather}
+      ARENDABOT_DATABASE_URL: postgresql+asyncpg://arendabot:arendabot@postgres:5432/arendabot
+      ARENDABOT_DATABASE_ECHO: ${ARENDABOT_DATABASE_ECHO:-false}
+      ARENDABOT_DROP_PENDING_UPDATES: ${ARENDABOT_DROP_PENDING_UPDATES:-false}
+      ARENDABOT_LOG_LEVEL: ${ARENDABOT_LOG_LEVEL:-INFO}
+      ARENDABOT_UPDATE_MODE: polling
+    init: true
+    volumes:
+      - .:/app
+
+volumes:
+  postgres-data:
+
