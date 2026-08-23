@@ -28,7 +28,8 @@ RUN uv sync --frozen --no-dev --no-editable
 
 FROM python:3.14-slim-bookworm AS production
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 RUN groupadd --system arendabot \
