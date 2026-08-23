@@ -1,0 +1,57 @@
+[build-system]
+requires = ["uv_build>=0.9.27,<0.10.0"]
+build-backend = "uv_build"
+
+[project]
+name = "arendabot"
+version = "0.1.0"
+description = "A production-ready Telegram bot foundation"
+readme = "README.md"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "aiogram>=3.23,<4",
+    "alembic>=1.15,<2",
+    "asyncpg>=0.31,<1",
+    "fastapi>=0.115,<1",
+    "pydantic-settings>=2.10,<3",
+    "sqlalchemy[asyncio]>=2.0,<3",
+    "uvicorn[standard]>=0.34,<1",
+]
+
+[project.scripts]
+arendabot-polling = "arendabot.bootstrap.polling:main"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28,<1",
+    "pyright>=1.1.400,<2",
+    "pytest>=8.3,<10",
+    "pytest-asyncio>=0.25,<2",
+    "ruff>=0.12,<1",
+    "testcontainers[postgres]>=4.10,<5",
+    "watchfiles>=1.1,<2",
+]
+
+[tool.pyright]
+include = ["src"]
+exclude = ["src/arendabot/adapters/postgres/migrations"]
+pythonVersion = "3.14"
+typeCheckingMode = "strict"
+
+[tool.pytest.ini_options]
+addopts = ["-ra", "--strict-config", "--strict-markers"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+markers = ["integration: requires a local Docker daemon"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["ASYNC", "B", "E", "F", "I", "RUF", "SIM", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+
